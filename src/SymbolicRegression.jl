@@ -658,11 +658,11 @@ function _dispatch_s_r_cycle(
     running_search_statistics,
 ) where {T,L,N}
     record = RecordType()
-    @recorder record["out$(out)_pop$(pop)"] = RecordType(
-        "iteration$(iteration)" => record_population(in_pop, options)
-    )
+    # @recorder record["out$(out)_pop$(pop)"] = RecordType(
+    #     "iteration$(iteration)" => record_population(in_pop, options)
+    # )
     num_evals = 0.0
-    normalize_frequencies!(running_search_statistics)
+    # normalize_frequencies!(running_search_statistics)
     out_pop, best_seen, evals_from_cycle = s_r_cycle(
         dataset,
         in_pop,
@@ -673,7 +673,7 @@ function _dispatch_s_r_cycle(
         options=options,
         record=record,
     )
-    num_evals += evals_from_cycle
+    # num_evals += evals_from_cycle
     out_pop, evals_from_optimize = optimize_and_simplify_population(
         dataset, out_pop, options, cur_maxsize, record
     )
