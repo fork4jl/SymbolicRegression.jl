@@ -615,7 +615,7 @@ redirect_stdout(devnull) do
     redirect_stderr(devnull) do
         @setup_workload begin
             X = zeros(2, 1);
-            Y = zeros(1);
+            Y = zeros(1, 1);
     
             @compile_workload begin
                 options = SymbolicRegression.Options(;
