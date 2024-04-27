@@ -35,29 +35,8 @@ using DynamicExpressions:
 using DynamicExpressions.EquationModule: with_type_parameters
 using LossFunctions: SupervisedLoss
 
+const PACKAGE_VERSION = VersionNumber(0, 0, 0)
 
-# https://discourse.julialang.org/t/how-to-find-out-the-version-of-a-package-from-its-module/37755/15
-const PACKAGE_VERSION = try
-    root = pkgdir(@__MODULE__)
-    if root == String
-        let project = parsefile(joinpath(root, "Project.toml"))
-            VersionNumber(project["version"])
-        end
-    else
-        VersionNumber(0, 0, 0)
-    end
-catch
-    VersionNumber(0, 0, 0)
-end
-
-function deprecate_varmap(variable_names, varMap, func_name)
-    if varMap !== nothing
-        Base.depwarn("`varMap` is deprecated; use `variable_names` instead", func_name)
-        @assert variable_names === nothing "Cannot pass both `varMap` and `variable_names`"
-        variable_names = varMap
-    end
-    return variable_names
-end
 
 include("Utils.jl")
 include("InterfaceDynamicQuantities.jl")
@@ -195,19 +174,6 @@ function equation_search(
     multithreaded=nothing,
     varMap=nothing,
 ) where {T<:DATA_TYPE,L,DIM_OUT}
-    # if multithreaded !== nothing
-    #     error(
-    #         "`multithreaded` is deprecated. Use the `parallelism` argument instead. " *
-    #         "Choose one of :multithreaded, :multiprocessing, or :serial.",
-    #     )
-    # end
-    # variable_names = deprecate_varmap(variable_names, varMap, :equation_search)
-
-    # if weights !== nothing
-    #     @assert length(weights) == length(y)
-    #     weights = reshape(weights, size(y))
-    # end
-
     datasets = construct_datasets(
         X,
         y,
@@ -237,20 +203,6 @@ function equation_search(
         v_dim_out=Val(DIM_OUT),
     )
 end
-
-# function equation_search(
-#     X::AbstractMatrix{T1}, y::AbstractMatrix{T2}; kw...
-# ) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
-# end
-
-# function equation_search(
-#     X::AbstractMatrix{T1}, y::AbstractVector{T2}; kw...
-# ) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
-#     return equation_search(X, reshape(y, (1, size(y, 1))); kw..., v_dim_out=Val(1))
-# end
-
-# function equation_search(dataset::Dataset; kws...)
-# end
 
 function equation_search(
     datasets::Vector{D};
@@ -288,7 +240,6 @@ function equation_search(
         DIM_OUT
     end
 
-    # Underscores here mean that we have mutated the variable
     return _equation_search(
         datasets,
         RuntimeOptions{:serial, dim_out,_return_state}(;
@@ -310,45 +261,12 @@ end
 @noinline function _equation_search(
     datasets::Vector{D}, ropt::RuntimeOptions, options::Options, saved_state
 ) where {D<:Dataset}
-    # _validate_options(datasets, ropt, options)
     state = _create_workers(datasets, ropt, options)
     _initialize_search!(state, datasets, ropt, options, saved_state)
+
     _warmup_search!(state, datasets, ropt, options)
-    # _main_search_loop!(state, datasets, ropt, options)
-    # _tear_down!(state, ropt, options)
-    # return _format_output(state, ropt)
 end
 
-function _validate_options(
-    datasets::Vector{D}, ropt::RuntimeOptions, options::Options
-) where {T,L,D<:Dataset{T,L}}
-    example_dataset = first(datasets)
-    nout = length(datasets)
-    @assert nout >= 1
-    @assert (nout == 1 || ropt.dim_out == 2)
-    @assert options.populations >= 1
-    if ropt.progress
-        @assert(nout == 1, "You cannot display a progress bar for multi-output searches.")
-        @assert(ropt.verbosity > 0, "You cannot display a progress bar with `verbosity=0`.")
-    end
-    if options.node_type <: GraphNode && ropt.verbosity > 0
-        @warn "The `GraphNode` interface and mutation operators are experimental and will change in future versions."
-    end
-    if ropt.runtests
-        test_option_configuration(ropt.parallelism, datasets, options, ropt.verbosity)
-        test_dataset_configuration(example_dataset, options, ropt.verbosity)
-    end
-    for dataset in datasets
-        update_baseline_loss!(dataset, options)
-    end
-    if options.define_helper_functions
-        set_default_variable_names!(first(datasets).variable_names)
-    end
-    if options.seed !== nothing
-        seed!(options.seed)
-    end
-    return nothing
-end
 function _create_workers(
     datasets::Vector{D}, ropt::RuntimeOptions, options::Options
 ) where {T,L,D<:Dataset{T,L}}
@@ -442,30 +360,11 @@ function _initialize_search!(
 ) where {T,L,N}
     nout = length(datasets)
 
-    # init_hall_of_fame = load_saved_hall_of_fame(saved_state)
-    # if init_hall_of_fame === nothing
-        for j in 1:nout
-            state.halls_of_fame[j] = HallOfFame(options, T, L)
-        end
-    # else
-    #     # Recompute losses for the hall of fame, in
-    #     # case the dataset changed:
-    #     for j in eachindex(init_hall_of_fame, datasets, state.halls_of_fame)
-    #         hof = init_hall_of_fame[j]
-    #         for member in hof.members[hof.exists]
-    #             score, result_loss = score_func(datasets[j], member, options)
-    #             member.score = score
-    #             member.loss = result_loss
-    #         end
-    #         state.halls_of_fame[j] = hof
-    #     end
-    # end
+    for j in 1:nout
+        state.halls_of_fame[j] = HallOfFame(options, T, L)
+    end
 
     for j in 1:nout, i in 1:(options.populations)
-        # worker_idx = assign_next_worker!(
-        #     state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
-        # )
-        # saved_pop = load_saved_population(saved_state; out=j, pop=i)
         new_pop =
             (
                 Population(
@@ -491,13 +390,7 @@ function _warmup_search!(
         dataset = datasets[j]
         running_search_statistics = state.all_running_search_statistics[j]
         cur_maxsize = state.cur_maxsizes[j]
-        # @recorder state.record[]["out$(j)_pop$(i)"] = RecordType()
-        # worker_idx = assign_next_worker!(
-        #     state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
-        # )
 
-        # TODO - why is this needed??
-        # Multi-threaded doesn't like to fetch within a new task:
         c_rss = deepcopy(running_search_statistics)
         last_pop = state.worker_output[j][i]
         in_pop = first(
@@ -514,40 +407,9 @@ function _warmup_search!(
             cur_maxsize,
             running_search_statistics=c_rss,
         )
-        
-        # updated_pop = @sr_spawner(
-        #     begin
-        #         in_pop = first(
-        #             extract_from_worker(last_pop, Population{T,L,N}, HallOfFame{T,L,N})
-        #         )
-        #         _dispatch_s_r_cycle(
-        #             in_pop,
-        #             dataset,
-        #             options;
-        #             pop=i,
-        #             out=j,
-        #             iteration=0,
-        #             ropt.verbosity,
-        #             cur_maxsize,
-        #             running_search_statistics=c_rss,
-        #         )::DefaultWorkerOutputType{Population{T,L,N},HallOfFame{T,L,N}}
-        #     end,
-        #     parallelism = ropt.parallelism,
-        #     worker_idx = worker_idx
-        # )
-        # state.worker_output[j][i] = updated_pop
     end
-    return nothing
 end
 
-function _main_search_loop!(
-    state::SearchState{T,L,N}, datasets, ropt::RuntimeOptions, options::Options
-) where {T,L,N}
-end
-function _tear_down!(state::SearchState, ropt::RuntimeOptions, options::Options)
-end
-function _format_output(state::SearchState, ropt::RuntimeOptions)
-end
 
 function _dispatch_s_r_cycle(
     in_pop::Population{T,L,N},

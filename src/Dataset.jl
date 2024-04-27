@@ -13,7 +13,6 @@ using ..UtilsModule: subscriptify, get_base_type
 using ..ProgramConstantsModule: BATCH_DIM, FEATURE_DIM, DATA_TYPE, LOSS_TYPE
 using ...InterfaceDynamicQuantitiesModule: get_si_units, get_sym_units
 
-import ...deprecate_varmap
 
 """
     Dataset{T<:DATA_TYPE,L<:LOSS_TYPE}
@@ -113,7 +112,7 @@ function Dataset(
     Base.require_one_based_indexing(X)
     y !== nothing && Base.require_one_based_indexing(y)
     # Deprecation warning:
-    variable_names = deprecate_varmap(variable_names, varMap, :Dataset)
+    variable_names = variable_names
 
     n = size(X, BATCH_DIM)
     nfeatures = size(X, FEATURE_DIM)

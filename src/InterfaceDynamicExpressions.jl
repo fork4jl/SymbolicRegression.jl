@@ -18,7 +18,6 @@ import DynamicExpressions:
     string_tree,
     differentiable_eval_tree_array
 
-import ..deprecate_varmap
 
 """
     eval_tree_array(tree::AbstractExpressionNode, X::AbstractArray, options::Options; kws...)
@@ -153,7 +152,7 @@ Convert an equation to a string.
     varMap=nothing,
     kws...,
 )
-    variable_names = deprecate_varmap(variable_names, varMap, :string_tree)
+    variable_names = variable_names
 
     if raw
         tree = tree isa GraphNode ? convert(Node, tree) : tree
