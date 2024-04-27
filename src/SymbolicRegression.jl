@@ -164,7 +164,6 @@ using .SearchUtilsModule:
     get_cur_maxsize,
     update_hall_of_fame!
 
-include("deprecates.jl")
 include("Configure.jl")
 
 """
