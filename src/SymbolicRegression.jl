@@ -398,9 +398,9 @@ end
     state = _create_workers(datasets, ropt, options)
     _initialize_search!(state, datasets, ropt, options, saved_state)
     _warmup_search!(state, datasets, ropt, options)
-    _main_search_loop!(state, datasets, ropt, options)
-    _tear_down!(state, ropt, options)
-    return _format_output(state, ropt)
+    # _main_search_loop!(state, datasets, ropt, options)
+    # _tear_down!(state, ropt, options)
+    # return _format_output(state, ropt)
 end
 
 function _validate_options(
