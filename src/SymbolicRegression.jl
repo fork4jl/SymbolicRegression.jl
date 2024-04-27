@@ -1,77 +1,13 @@
 module SymbolicRegression
 
-# Types
-export Population,
-    PopMember,
-    HallOfFame,
-    Options,
-    Dataset,
-    MutationWeights,
-    Node,
-    GraphNode,
-    NodeSampler,
-    AbstractExpressionNode,
-    SRRegressor,
-    MultitargetSRRegressor,
-    LOSS_TYPE,
-    DATA_TYPE,
+export equation_search
 
-    #Functions:
-    equation_search,
-    s_r_cycle,
-    calculate_pareto_frontier,
-    count_nodes,
-    compute_complexity,
-    print_tree,
-    string_tree,
-    eval_tree_array,
-    eval_diff_tree_array,
-    eval_grad_tree_array,
-    differentiable_eval_tree_array,
-    set_node!,
-    copy_node,
-    node_to_symbolic,
-    symbolic_to_node,
-    simplify_tree!,
-    tree_mapreduce,
-    combine_operators,
-    gen_random_tree,
-    gen_random_tree_fixed_size,
-    @extend_operators,
-
-    #Operators
-    plus,
-    sub,
-    mult,
-    square,
-    cube,
-    pow,
-    safe_pow,
-    safe_log,
-    safe_log2,
-    safe_log10,
-    safe_log1p,
-    safe_acosh,
-    safe_sqrt,
-    neg,
-    greater,
-    cond,
-    relu,
-    logical_or,
-    logical_and,
-
-    # special operators
-    gamma,
-    erf,
-    erfc,
-    atanh_clip
 
 using Distributed
 using Printf: @printf, @sprintf
 using Pkg: Pkg
 using TOML: parsefile
 using Random: seed!, shuffle!
-using Reexport
 using DynamicExpressions:
     Node,
     GraphNode,
@@ -97,33 +33,8 @@ using DynamicExpressions:
     tree_mapreduce,
     set_default_variable_names!
 using DynamicExpressions.EquationModule: with_type_parameters
-@reexport using LossFunctions:
-    MarginLoss,
-    DistanceLoss,
-    SupervisedLoss,
-    ZeroOneLoss,
-    LogitMarginLoss,
-    PerceptronLoss,
-    HingeLoss,
-    L1HingeLoss,
-    L2HingeLoss,
-    SmoothedL1HingeLoss,
-    ModifiedHuberLoss,
-    L2MarginLoss,
-    ExpLoss,
-    SigmoidLoss,
-    DWDMarginLoss,
-    LPDistLoss,
-    L1DistLoss,
-    L2DistLoss,
-    PeriodicLoss,
-    HuberLoss,
-    EpsilonInsLoss,
-    L1EpsilonInsLoss,
-    L2EpsilonInsLoss,
-    LogitDistLoss,
-    QuantileLoss,
-    LogCoshLoss
+using LossFunctions: SupervisedLoss
+
 
 # https://discourse.julialang.org/t/how-to-find-out-the-version-of-a-package-from-its-module/37755/15
 const PACKAGE_VERSION = try
