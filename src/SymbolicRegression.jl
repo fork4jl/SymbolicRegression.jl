@@ -442,71 +442,43 @@ function _initialize_search!(
 ) where {T,L,N}
     nout = length(datasets)
 
-    init_hall_of_fame = load_saved_hall_of_fame(saved_state)
-    if init_hall_of_fame === nothing
+    # init_hall_of_fame = load_saved_hall_of_fame(saved_state)
+    # if init_hall_of_fame === nothing
         for j in 1:nout
             state.halls_of_fame[j] = HallOfFame(options, T, L)
         end
-    else
-        # Recompute losses for the hall of fame, in
-        # case the dataset changed:
-        for j in eachindex(init_hall_of_fame, datasets, state.halls_of_fame)
-            hof = init_hall_of_fame[j]
-            for member in hof.members[hof.exists]
-                score, result_loss = score_func(datasets[j], member, options)
-                member.score = score
-                member.loss = result_loss
-            end
-            state.halls_of_fame[j] = hof
-        end
-    end
+    # else
+    #     # Recompute losses for the hall of fame, in
+    #     # case the dataset changed:
+    #     for j in eachindex(init_hall_of_fame, datasets, state.halls_of_fame)
+    #         hof = init_hall_of_fame[j]
+    #         for member in hof.members[hof.exists]
+    #             score, result_loss = score_func(datasets[j], member, options)
+    #             member.score = score
+    #             member.loss = result_loss
+    #         end
+    #         state.halls_of_fame[j] = hof
+    #     end
+    # end
 
     for j in 1:nout, i in 1:(options.populations)
-        worker_idx = assign_next_worker!(
-            state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
-        )
-        saved_pop = load_saved_population(saved_state; out=j, pop=i)
+        # worker_idx = assign_next_worker!(
+        #     state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
+        # )
+        # saved_pop = load_saved_population(saved_state; out=j, pop=i)
         new_pop =
-            if saved_pop !== nothing && length(saved_pop.members) == options.population_size
-                saved_pop::Population{T,L,N}
-                ## Update losses:
-                for member in saved_pop.members
-                    score, result_loss = score_func(datasets[j], member, options)
-                    member.score = score
-                    member.loss = result_loss
-                end
-                copy_pop = copy(saved_pop)
-                @sr_spawner(
-                    begin
-                        (copy_pop, HallOfFame(options, T, L), RecordType(), 0.0)
-                    end,
-                    parallelism = ropt.parallelism,
-                    worker_idx = worker_idx
-                )
-            else
-                if saved_pop !== nothing && ropt.verbosity > 0
-                    @warn "Recreating population (output=$(j), population=$(i)), as the saved one doesn't have the correct number of members."
-                end
-                @sr_spawner(
-                    begin
-                        (
-                            Population(
-                                datasets[j];
-                                population_size=options.population_size,
-                                nlength=3,
-                                options=options,
-                                nfeatures=datasets[j].nfeatures,
-                            ),
-                            HallOfFame(options, T, L),
-                            RecordType(),
-                            Float64(options.population_size),
-                        )
-                    end,
-                    parallelism = ropt.parallelism,
-                    worker_idx = worker_idx
-                )
-                # This involves population_size evaluations, on the full dataset:
-            end
+            (
+                Population(
+                    datasets[j];
+                    population_size=options.population_size,
+                    nlength=3,
+                    options=options,
+                    nfeatures=datasets[j].nfeatures,
+                ),
+                HallOfFame(options, T, L),
+                RecordType(),
+                Float64(options.population_size),
+            )
         push!(state.worker_output[j], new_pop)
     end
     return nothing
