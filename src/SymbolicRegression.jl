@@ -636,31 +636,14 @@ function _warmup_search!(
     end
     return nothing
 end
+
 function _main_search_loop!(
     state::SearchState{T,L,N}, datasets, ropt::RuntimeOptions, options::Options
 ) where {T,L,N}
 end
 function _tear_down!(state::SearchState, ropt::RuntimeOptions, options::Options)
-    close_reader!(state.stdin_reader)
-    # Safely close all processes or threads
-    if ropt.parallelism == :multiprocessing
-        state.we_created_procs && rmprocs(state.procs)
-    elseif ropt.parallelism == :multithreading
-        nout = length(state.worker_output)
-        for j in 1:nout, i in eachindex(state.worker_output[j])
-            wait(state.worker_output[j][i])
-        end
-    end
-    @recorder json3_write(state.record[], options.recorder_file)
-    return nothing
 end
 function _format_output(state::SearchState, ropt::RuntimeOptions)
-    out_hof = (ropt.dim_out == 1 ? only(state.halls_of_fame) : state.halls_of_fame)
-    if ropt.return_state
-        return (state.last_pops, out_hof)
-    else
-        return out_hof
-    end
 end
 
 function _dispatch_s_r_cycle(
@@ -694,15 +677,15 @@ function _dispatch_s_r_cycle(
     out_pop, evals_from_optimize = optimize_and_simplify_population(
         dataset, out_pop, options, cur_maxsize, record
     )
-    num_evals += evals_from_optimize
-    if options.batching
-        for i_member in 1:(options.maxsize + MAX_DEGREE)
-            score, result_loss = score_func(dataset, best_seen.members[i_member], options)
-            best_seen.members[i_member].score = score
-            best_seen.members[i_member].loss = result_loss
-            num_evals += 1
-        end
-    end
+    # num_evals += evals_from_optimize
+    # if options.batching
+    #     for i_member in 1:(options.maxsize + MAX_DEGREE)
+    #         score, result_loss = score_func(dataset, best_seen.members[i_member], options)
+    #         best_seen.members[i_member].score = score
+    #         best_seen.members[i_member].loss = result_loss
+    #         num_evals += 1
+    #     end
+    # end
     return (out_pop, best_seen, record, num_evals)
 end
 
