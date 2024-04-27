@@ -106,26 +106,27 @@ end
 function optimize_and_simplify_population(
     dataset::D, pop::P, options::Options, curmaxsize::Int, record::RecordType
 )::Tuple{P,Float64} where {T,L,D<:Dataset{T,L},P<:Population{T,L}}
-    array_num_evals = zeros(Float64, pop.n)
-    do_optimization = rand(pop.n) .< options.optimizer_probability
-    for j in 1:(pop.n)
-        if options.should_simplify
-            tree = pop.members[j].tree
-            tree = simplify_tree!(tree, options.operators)
-            if tree isa Node
-                tree = combine_operators(tree, options.operators)
-            end
-            pop.members[j].tree = tree
-        end
-        if options.should_optimize_constants && do_optimization[j]
+    j = pop.n
+    # array_num_evals = zeros(Float64, pop.n)
+    # do_optimization = rand(pop.n) .< options.optimizer_probability
+    # for j in 1:(pop.n)
+        # if options.should_simplify
+        #     tree = pop.members[j].tree
+        #     tree = simplify_tree!(tree, options.operators)
+        #     if tree isa Node
+        #         tree = combine_operators(tree, options.operators)
+        #     end
+        #     pop.members[j].tree = tree
+        # end
+        if options.should_optimize_constants
             # TODO: Might want to do full batch optimization here?
             pop.members[j], array_num_evals[j] = optimize_constants(
                 dataset, pop.members[j], options
             )
         end
-    end
-    num_evals = sum(array_num_evals)
-    pop, tmp_num_evals = finalize_scores(dataset, pop, options)
+    # end
+    # num_evals = 0.0
+    # pop, tmp_num_evals = finalize_scores(dataset, pop, options)
     # num_evals += tmp_num_evals
 
     # # Now, we create new references for every member,
@@ -169,7 +170,7 @@ function optimize_and_simplify_population(
     #         push!(record["mutations"]["$(old_ref)"]["events"], death_event)
     #     end
     # end
-    return (pop, num_evals)
+    return (pop, 0.0)
 end
 
 end
