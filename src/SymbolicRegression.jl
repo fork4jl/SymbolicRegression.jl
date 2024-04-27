@@ -170,6 +170,7 @@ include("Configure.jl")
 function equation_search(
     X::AbstractMatrix{T},
     y::AbstractMatrix{T};
+
     niterations::Int=10,
     weights::Union{AbstractMatrix{T},AbstractVector{T},Nothing}=nothing,
     options::Options=Options(),
@@ -200,7 +201,7 @@ function equation_search(
     #         "Choose one of :multithreaded, :multiprocessing, or :serial.",
     #     )
     # end
-    variable_names = deprecate_varmap(variable_names, varMap, :equation_search)
+    # variable_names = deprecate_varmap(variable_names, varMap, :equation_search)
 
     # if weights !== nothing
     #     @assert length(weights) == length(y)
