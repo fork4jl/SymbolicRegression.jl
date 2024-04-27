@@ -126,49 +126,49 @@ function optimize_and_simplify_population(
     end
     num_evals = sum(array_num_evals)
     pop, tmp_num_evals = finalize_scores(dataset, pop, options)
-    num_evals += tmp_num_evals
+    # num_evals += tmp_num_evals
 
-    # Now, we create new references for every member,
-    # and optionally record which operations occurred.
-    for j in 1:(pop.n)
-        old_ref = pop.members[j].ref
-        new_ref = generate_reference()
-        pop.members[j].parent = old_ref
-        pop.members[j].ref = new_ref
+    # # Now, we create new references for every member,
+    # # and optionally record which operations occurred.
+    # for j in 1:(pop.n)
+    #     old_ref = pop.members[j].ref
+    #     new_ref = generate_reference()
+    #     pop.members[j].parent = old_ref
+    #     pop.members[j].ref = new_ref
 
-        @recorder begin
-            # Same structure as in RegularizedEvolution.jl,
-            # except we assume that the record already exists.
-            @assert haskey(record, "mutations")
-            member = pop.members[j]
-            if !haskey(record["mutations"], "$(member.ref)")
-                record["mutations"]["$(member.ref)"] = RecordType(
-                    "events" => Vector{RecordType}(),
-                    "tree" => string_tree(member.tree, options),
-                    "score" => member.score,
-                    "loss" => member.loss,
-                    "parent" => member.parent,
-                )
-            end
-            optimize_and_simplify_event = RecordType(
-                "type" => "tuning",
-                "time" => time(),
-                "child" => new_ref,
-                "mutation" => RecordType(
-                    "type" =>
-                        if (do_optimization[j] && options.should_optimize_constants)
-                            "simplification_and_optimization"
-                        else
-                            "simplification"
-                        end,
-                ),
-            )
-            death_event = RecordType("type" => "death", "time" => time())
+    #     @recorder begin
+    #         # Same structure as in RegularizedEvolution.jl,
+    #         # except we assume that the record already exists.
+    #         @assert haskey(record, "mutations")
+    #         member = pop.members[j]
+    #         if !haskey(record["mutations"], "$(member.ref)")
+    #             record["mutations"]["$(member.ref)"] = RecordType(
+    #                 "events" => Vector{RecordType}(),
+    #                 "tree" => string_tree(member.tree, options),
+    #                 "score" => member.score,
+    #                 "loss" => member.loss,
+    #                 "parent" => member.parent,
+    #             )
+    #         end
+    #         optimize_and_simplify_event = RecordType(
+    #             "type" => "tuning",
+    #             "time" => time(),
+    #             "child" => new_ref,
+    #             "mutation" => RecordType(
+    #                 "type" =>
+    #                     if (do_optimization[j] && options.should_optimize_constants)
+    #                         "simplification_and_optimization"
+    #                     else
+    #                         "simplification"
+    #                     end,
+    #             ),
+    #         )
+    #         death_event = RecordType("type" => "death", "time" => time())
 
-            push!(record["mutations"]["$(old_ref)"]["events"], optimize_and_simplify_event)
-            push!(record["mutations"]["$(old_ref)"]["events"], death_event)
-        end
-    end
+    #         push!(record["mutations"]["$(old_ref)"]["events"], optimize_and_simplify_event)
+    #         push!(record["mutations"]["$(old_ref)"]["events"], death_event)
+    #     end
+    # end
     return (pop, num_evals)
 end
 
