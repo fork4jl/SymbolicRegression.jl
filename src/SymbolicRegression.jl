@@ -309,7 +309,7 @@ end
 @noinline function _equation_search(
     datasets::Vector{D}, ropt::RuntimeOptions, options::Options, saved_state
 ) where {D<:Dataset}
-    _validate_options(datasets, ropt, options)
+    # _validate_options(datasets, ropt, options)
     state = _create_workers(datasets, ropt, options)
     _initialize_search!(state, datasets, ropt, options, saved_state)
     _warmup_search!(state, datasets, ropt, options)
