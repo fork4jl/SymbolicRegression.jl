@@ -1,34 +1,22 @@
 module SingleIterationModule
 
-using DynamicExpressions:
-    AbstractExpressionNode,
-    Node,
-    constructorof,
-    string_tree,
-    simplify_tree!,
-    combine_operators
-using ..CoreModule: Options, Dataset, RecordType, DATA_TYPE, LOSS_TYPE
-using ..ComplexityModule: compute_complexity
-using ..PopMemberModule: PopMember, generate_reference
-using ..PopulationModule: Population, finalize_scores, best_sub_pop
+using DynamicExpressions: AbstractExpressionNode
+using ..CoreModule: Options, Dataset, RecordType
+using ..PopulationModule: Population
 using ..HallOfFameModule: HallOfFame
-using ..AdaptiveParsimonyModule: RunningSearchStatistics
-using ..RegularizedEvolutionModule: reg_evol_cycle
-using ..LossFunctionsModule: score_func_batched, batch_sample
-using ..ConstantOptimizationModule: optimize_constants
-using ..RecorderModule: @recorder
 
-# Cycle through regularized evolution many times,
-# printing the fittest equation every 10% through
+using ..ConstantOptimizationModule: optimize_constants
+
+
 function s_r_cycle(
     dataset::D,
     pop::P,
-    ncycles::Int,
-    curmaxsize::Int,
-    running_search_statistics::RunningSearchStatistics;
-    verbosity::Int=0,
+    ncycles,
+    curmaxsize,
+    running_search_statistics;
+    verbosity,
     options::Options,
-    record::RecordType,
+    record,
 )::Tuple{
     P,HallOfFame{T,L,N},Float64
 } where {T,L,D<:Dataset{T,L},N<:AbstractExpressionNode{T},P<:Population{T,L,N}}
@@ -38,7 +26,7 @@ function s_r_cycle(
 end
 
 function optimize_and_simplify_population(
-    dataset::D, pop::P, options::Options, curmaxsize::Int, record::RecordType
+    dataset::D, pop::P, options::Options, curmaxsize, record
 )::Tuple{P,Float64} where {T,L,D<:Dataset{T,L},P<:Population{T,L}}
     j = pop.n
 
