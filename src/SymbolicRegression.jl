@@ -190,7 +190,7 @@ function equation_search(
     progress::Union{Bool,Nothing}=nothing,
     X_units::Union{AbstractVector,Nothing}=nothing,
     y_units=nothing,
-    v_dim_out::Val{DIM_OUT}=Val(nothing),
+    v_dim_out::Val{DIM_OUT}=Val(1),
     # Deprecated:
     multithreaded=nothing,
     varMap=nothing,
