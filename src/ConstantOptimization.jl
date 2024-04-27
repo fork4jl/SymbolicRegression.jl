@@ -11,14 +11,9 @@ using ..PopMemberModule: PopMember
 function optimize_constants(
     dataset::Dataset{T,L}, member::P, options::Options
 )::Tuple{P,Float64} where {T<:DATA_TYPE,L<:LOSS_TYPE,P<:PopMember{T,L}}
-    if options.batching
-        dispatch_optimize_constants(
-            dataset, member, options, batch_sample(dataset, options)
-        )
-    else
-        dispatch_optimize_constants(dataset, member, options, nothing)
-    end
+    dispatch_optimize_constants(dataset, member, options, nothing)
 end
+
 function dispatch_optimize_constants(
     dataset::Dataset{T,L}, member::P, options::Options, idx
 ) where {T<:DATA_TYPE,L<:LOSS_TYPE,P<:PopMember{T,L}}
@@ -30,6 +25,7 @@ function dispatch_optimize_constants(
             dataset, member, options, algorithm, options.optimizer_options, idx
         )
     end
+
     return _optimize_constants(
         dataset,
         member,
@@ -65,16 +61,6 @@ function _optimize_constants(
         if tmpresult.minimum < result.minimum
             result = tmpresult
         end
-    end
-
-    if result.minimum < baseline
-        member.tree = result.minimizer
-        member.loss = eval_loss(member.tree, dataset, options; regularization=true, idx=idx)
-        member.score = loss_to_score(
-            member.loss, dataset.use_baseline, dataset.baseline_loss, member, options
-        )
-        member.birth = get_birth_order(; deterministic=options.deterministic)
-        num_evals += eval_fraction
     end
 
     return member, num_evals
