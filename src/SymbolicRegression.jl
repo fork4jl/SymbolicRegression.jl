@@ -603,36 +603,51 @@ function _warmup_search!(
         dataset = datasets[j]
         running_search_statistics = state.all_running_search_statistics[j]
         cur_maxsize = state.cur_maxsizes[j]
-        @recorder state.record[]["out$(j)_pop$(i)"] = RecordType()
-        worker_idx = assign_next_worker!(
-            state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
-        )
+        # @recorder state.record[]["out$(j)_pop$(i)"] = RecordType()
+        # worker_idx = assign_next_worker!(
+        #     state.worker_assignment; out=j, pop=i, parallelism=ropt.parallelism, state.procs
+        # )
 
         # TODO - why is this needed??
         # Multi-threaded doesn't like to fetch within a new task:
         c_rss = deepcopy(running_search_statistics)
         last_pop = state.worker_output[j][i]
-        updated_pop = @sr_spawner(
-            begin
-                in_pop = first(
-                    extract_from_worker(last_pop, Population{T,L,N}, HallOfFame{T,L,N})
-                )
-                _dispatch_s_r_cycle(
-                    in_pop,
-                    dataset,
-                    options;
-                    pop=i,
-                    out=j,
-                    iteration=0,
-                    ropt.verbosity,
-                    cur_maxsize,
-                    running_search_statistics=c_rss,
-                )::DefaultWorkerOutputType{Population{T,L,N},HallOfFame{T,L,N}}
-            end,
-            parallelism = ropt.parallelism,
-            worker_idx = worker_idx
+        in_pop = first(
+            extract_from_worker(last_pop, Population{T,L,N}, HallOfFame{T,L,N})
         )
-        state.worker_output[j][i] = updated_pop
+        _dispatch_s_r_cycle(
+            in_pop,
+            dataset,
+            options;
+            pop=i,
+            out=j,
+            iteration=0,
+            ropt.verbosity,
+            cur_maxsize,
+            running_search_statistics=c_rss,
+        )
+        
+        # updated_pop = @sr_spawner(
+        #     begin
+        #         in_pop = first(
+        #             extract_from_worker(last_pop, Population{T,L,N}, HallOfFame{T,L,N})
+        #         )
+        #         _dispatch_s_r_cycle(
+        #             in_pop,
+        #             dataset,
+        #             options;
+        #             pop=i,
+        #             out=j,
+        #             iteration=0,
+        #             ropt.verbosity,
+        #             cur_maxsize,
+        #             running_search_statistics=c_rss,
+        #         )::DefaultWorkerOutputType{Population{T,L,N},HallOfFame{T,L,N}}
+        #     end,
+        #     parallelism = ropt.parallelism,
+        #     worker_idx = worker_idx
+        # )
+        # state.worker_output[j][i] = updated_pop
     end
     return nothing
 end
