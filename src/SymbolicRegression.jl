@@ -713,10 +713,25 @@ macro ignore(args...) end
 # Hack to get static analysis to work from within tests:
 @ignore include("../test/runtests.jl")
 
-include("precompile.jl")
+using PrecompileTools: @compile_workload, @setup_workload
 redirect_stdout(devnull) do
     redirect_stderr(devnull) do
-        do_precompilation(Val(:precompile))
+        @setup_workload begin
+            X = zeros(2, 1);
+            Y = zeros(1);
+    
+            @compile_workload begin
+                options = SymbolicRegression.Options(;
+                    should_optimize_constants=false,
+                )
+                equation_search(
+                    X,
+                    Y;
+                    options=options,
+                    parallelism=:serial
+                )
+            end
+        end
     end
 end
 
