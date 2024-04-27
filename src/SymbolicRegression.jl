@@ -1044,8 +1044,8 @@ function _dispatch_s_r_cycle(
     return (out_pop, best_seen, record, num_evals)
 end
 
-include("MLJInterface.jl")
-using .MLJInterfaceModule: SRRegressor, MultitargetSRRegressor
+# include("MLJInterface.jl")
+# using .MLJInterfaceModule: SRRegressor, MultitargetSRRegressor
 
 macro ignore(args...) end
 # Hack to get static analysis to work from within tests:
