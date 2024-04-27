@@ -31,7 +31,7 @@ function optimize_and_simplify_population(
     j = pop.n
 
     if options.should_optimize_constants
-        pop.members[j], array_num_evals[j] = optimize_constants(
+        pop.members[j], _ = optimize_constants(
             dataset, pop.members[j], options
         )
     end
