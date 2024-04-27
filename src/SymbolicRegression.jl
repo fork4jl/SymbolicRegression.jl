@@ -194,18 +194,18 @@ function equation_search(
     multithreaded=nothing,
     varMap=nothing,
 ) where {T<:DATA_TYPE,L,DIM_OUT}
-    if multithreaded !== nothing
-        error(
-            "`multithreaded` is deprecated. Use the `parallelism` argument instead. " *
-            "Choose one of :multithreaded, :multiprocessing, or :serial.",
-        )
-    end
+    # if multithreaded !== nothing
+    #     error(
+    #         "`multithreaded` is deprecated. Use the `parallelism` argument instead. " *
+    #         "Choose one of :multithreaded, :multiprocessing, or :serial.",
+    #     )
+    # end
     variable_names = deprecate_varmap(variable_names, varMap, :equation_search)
 
-    if weights !== nothing
-        @assert length(weights) == length(y)
-        weights = reshape(weights, size(y))
-    end
+    # if weights !== nothing
+    #     @assert length(weights) == length(y)
+    #     weights = reshape(weights, size(y))
+    # end
 
     datasets = construct_datasets(
         X,
@@ -237,19 +237,19 @@ function equation_search(
     )
 end
 
-function equation_search(
-    X::AbstractMatrix{T1}, y::AbstractMatrix{T2}; kw...
-) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
-end
+# function equation_search(
+#     X::AbstractMatrix{T1}, y::AbstractMatrix{T2}; kw...
+# ) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
+# end
 
-function equation_search(
-    X::AbstractMatrix{T1}, y::AbstractVector{T2}; kw...
-) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
-    return equation_search(X, reshape(y, (1, size(y, 1))); kw..., v_dim_out=Val(1))
-end
+# function equation_search(
+#     X::AbstractMatrix{T1}, y::AbstractVector{T2}; kw...
+# ) where {T1<:DATA_TYPE,T2<:DATA_TYPE}
+#     return equation_search(X, reshape(y, (1, size(y, 1))); kw..., v_dim_out=Val(1))
+# end
 
-function equation_search(dataset::Dataset; kws...)
-end
+# function equation_search(dataset::Dataset; kws...)
+# end
 
 function equation_search(
     datasets::Vector{D};
