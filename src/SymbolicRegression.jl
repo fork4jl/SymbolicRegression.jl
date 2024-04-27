@@ -154,7 +154,6 @@ function equation_search(
     parallelism=:serial,
 
     loss_type::Type{L}=Nothing,
-    v_dim_out::Val{DIM_OUT}=Val(1),
 ) where {T<:DATA_TYPE,L,DIM_OUT}
     datasets = construct_datasets(
         X,
@@ -170,36 +169,18 @@ function equation_search(
 
     return equation_search(
         datasets;
-        niterations=10,
         options=options,
         parallelism=parallelism,
-        numprocs=nothing,
-        procs=nothing,
-        addprocs_function=nothing,
-        heap_size_hint_in_bytes=nothing,
-        runtests=true,
-        saved_state=nothing,
-        return_state=nothing,
-        verbosity=nothing,
-        progress=nothing,
-        v_dim_out=Val(DIM_OUT),
     )
 end
 
 function equation_search(
     datasets::Vector{D};
-    niterations::Int=10,
+
     options::Options=Options(),
     parallelism=:multithreading,
-    numprocs::Union{Int,Nothing}=nothing,
-    procs::Union{Vector{Int},Nothing}=nothing,
-    addprocs_function::Union{Function,Nothing}=nothing,
-    heap_size_hint_in_bytes::Union{Integer,Nothing}=nothing,
-    runtests::Bool=true,
-    saved_state=nothing,
+
     return_state::Union{Bool,Nothing,Val}=nothing,
-    verbosity::Union{Int,Nothing}=nothing,
-    progress::Union{Bool,Nothing}=nothing,
     v_dim_out::Val{DIM_OUT}=Val(nothing),
 ) where {DIM_OUT,T<:DATA_TYPE,L<:LOSS_TYPE,D<:Dataset{T,L}}
     _return_state = if return_state isa Val
@@ -224,19 +205,19 @@ function equation_search(
 
     return _equation_search(
         datasets,
-        RuntimeOptions{:serial, dim_out,_return_state}(;
-            niterations=niterations,
-            total_cycles=options.populations * niterations,
+        RuntimeOptions{:serial, dim_out, _return_state}(;
+            niterations=10,
+            total_cycles=options.populations * 10,
             numprocs=4,
-            init_procs=procs,
+            init_procs=nothing,
             addprocs_function=addprocs,
             exeflags=``,
-            runtests=runtests,
+            runtests=true,
             verbosity=false,
             progress=false,
         ),
         options,
-        saved_state,
+        nothing,
     )
 end
 
