@@ -1,11 +1,9 @@
 module ConstantOptimizationModule
 
-using LineSearches: LineSearches
+
 using Optim: Optim
-using DynamicExpressions: Node, count_constants, get_constant_refs
+using DynamicExpressions: count_constants
 using ..CoreModule: Options, Dataset, DATA_TYPE, LOSS_TYPE
-using ..UtilsModule: get_birth_order
-using ..LossFunctionsModule: eval_loss, loss_to_score, batch_sample
 using ..PopMemberModule: PopMember
 
 function optimize_constants(
@@ -34,7 +32,7 @@ function _optimize_constants(
     dataset, member::P, options, algorithm, optimizer_options, idx
 )::Tuple{P,Float64} where {T,L,P<:PopMember{T,L}}
     tree = member.tree
-    f(t) = eval_loss(t, dataset, options; regularization=false, idx=idx)::L
+    f(t) = zero(L)
     result = Optim.optimize(f, tree, algorithm, optimizer_options)
 
     return member, 0.0
