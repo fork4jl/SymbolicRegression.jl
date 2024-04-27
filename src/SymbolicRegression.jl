@@ -267,31 +267,6 @@ function equation_search(
     progress::Union{Bool,Nothing}=nothing,
     v_dim_out::Val{DIM_OUT}=Val(nothing),
 ) where {DIM_OUT,T<:DATA_TYPE,L<:LOSS_TYPE,D<:Dataset{T,L}}
-    concurrency = if parallelism in (:multithreading, "multithreading")
-        :multithreading
-    elseif parallelism in (:multiprocessing, "multiprocessing")
-        :multiprocessing
-    elseif parallelism in (:serial, "serial")
-        :serial
-    else
-        error(
-            "Invalid parallelism mode: $parallelism. " *
-            "You must choose one of :multithreading, :multiprocessing, or :serial.",
-        )
-        :serial
-    end
-    not_distributed = concurrency in (:multithreading, :serial)
-    not_distributed &&
-        procs !== nothing &&
-        error(
-            "`procs` should not be set when using `parallelism=$(parallelism)`. Please use `:multiprocessing`.",
-        )
-    not_distributed &&
-        numprocs !== nothing &&
-        error(
-            "`numprocs` should not be set when using `parallelism=$(parallelism)`. Please use `:multiprocessing`.",
-        )
-
     _return_state = if return_state isa Val
         first(typeof(return_state).parameters)
     else
@@ -311,80 +286,20 @@ function equation_search(
     else
         DIM_OUT
     end
-    _numprocs::Int = if numprocs === nothing
-        if procs === nothing
-            4
-        else
-            length(procs)
-        end
-    else
-        if procs === nothing
-            numprocs
-        else
-            @assert length(procs) == numprocs
-            numprocs
-        end
-    end
-
-    _verbosity = if verbosity === nothing && options.verbosity === nothing
-        1
-    elseif verbosity === nothing && options.verbosity !== nothing
-        options.verbosity
-    elseif verbosity !== nothing && options.verbosity === nothing
-        verbosity
-    else
-        error(
-            "You cannot set `verbosity` in both the search parameters `Options` and the call to `equation_search`.",
-        )
-        1
-    end
-    _progress::Bool = if progress === nothing && options.progress === nothing
-        (_verbosity > 0) && length(datasets) == 1
-    elseif progress === nothing && options.progress !== nothing
-        options.progress
-    elseif progress !== nothing && options.progress === nothing
-        progress
-    else
-        error(
-            "You cannot set `progress` in both the search parameters `Options` and the call to `equation_search`.",
-        )
-        false
-    end
-
-    _addprocs_function = addprocs_function === nothing ? addprocs : addprocs_function
-
-    exeflags = if VERSION >= v"1.9" && concurrency == :multiprocessing
-        heap_size_hint_in_megabytes = floor(
-            Int, (
-                if heap_size_hint_in_bytes === nothing
-                    (Sys.free_memory() / _numprocs)
-                else
-                    heap_size_hint_in_bytes
-                end
-            ) / 1024^2
-        )
-        _verbosity > 0 &&
-            heap_size_hint_in_bytes === nothing &&
-            @info "Automatically setting `--heap-size-hint=$(heap_size_hint_in_megabytes)M` on each Julia process. You can configure this with the `heap_size_hint_in_bytes` parameter."
-
-        `--heap-size=$(heap_size_hint_in_megabytes)M`
-    else
-        ``
-    end
 
     # Underscores here mean that we have mutated the variable
     return _equation_search(
         datasets,
-        RuntimeOptions{concurrency,dim_out,_return_state}(;
+        RuntimeOptions{:serial, dim_out,_return_state}(;
             niterations=niterations,
             total_cycles=options.populations * niterations,
-            numprocs=_numprocs,
+            numprocs=4,
             init_procs=procs,
-            addprocs_function=_addprocs_function,
-            exeflags=exeflags,
+            addprocs_function=addprocs,
+            exeflags=``,
             runtests=runtests,
-            verbosity=_verbosity,
-            progress=_progress,
+            verbosity=false,
+            progress=false,
         ),
         options,
         saved_state,
