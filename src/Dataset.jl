@@ -14,41 +14,6 @@ using ..ProgramConstantsModule: BATCH_DIM, FEATURE_DIM, DATA_TYPE, LOSS_TYPE
 using ...InterfaceDynamicQuantitiesModule: get_si_units, get_sym_units
 
 
-"""
-    Dataset{T<:DATA_TYPE,L<:LOSS_TYPE}
-
-# Fields
-
-- `X::AbstractMatrix{T}`: The input features, with shape `(nfeatures, n)`.
-- `y::AbstractVector{T}`: The desired output values, with shape `(n,)`.
-- `n::Int`: The number of samples.
-- `nfeatures::Int`: The number of features.
-- `weighted::Bool`: Whether the dataset is non-uniformly weighted.
-- `weights::Union{AbstractVector{T},Nothing}`: If the dataset is weighted,
-    these specify the per-sample weight (with shape `(n,)`).
-- `extra::NamedTuple`: Extra information to pass to a custom evaluation
-    function. Since this is an arbitrary named tuple, you could pass
-    any sort of dataset you wish to here.
-- `avg_y`: The average value of `y` (weighted, if `weights` are passed).
-- `use_baseline`: Whether to use a baseline loss. This will be set to `false`
-    if the baseline loss is calculated to be `Inf`.
-- `baseline_loss`: The loss of a constant function which predicts the average
-    value of `y`. This is loss-dependent and should be updated with
-    `update_baseline_loss!`.
-- `variable_names::Array{String,1}`: The names of the features,
-    with shape `(nfeatures,)`.
-- `display_variable_names::Array{String,1}`: A version of `variable_names`
-    but for printing to the terminal (e.g., with unicode versions).
-- `y_variable_name::String`: The name of the output variable.
-- `X_units`: Unit information of `X`. When used, this is a vector
-    of `DynamicQuantities.Quantity{<:Any,<:Dimensions}` with shape `(nfeatures,)`.
-- `y_units`: Unit information of `y`. When used, this is a single
-    `DynamicQuantities.Quantity{<:Any,<:Dimensions}`.
-- `X_sym_units`: Unit information of `X`. When used, this is a vector
-    of `DynamicQuantities.Quantity{<:Any,<:SymbolicDimensions}` with shape `(nfeatures,)`.
-- `y_sym_units`: Unit information of `y`. When used, this is a single
-    `DynamicQuantities.Quantity{<:Any,<:SymbolicDimensions}`.
-"""
 mutable struct Dataset{
     T<:DATA_TYPE,
     L<:LOSS_TYPE,
@@ -80,20 +45,6 @@ mutable struct Dataset{
     y_sym_units::YUS
 end
 
-"""
-    Dataset(X::AbstractMatrix{T},
-            y::Union{AbstractVector{T},Nothing}=nothing,
-            loss_type::Type=Nothing;
-            weights::Union{AbstractVector{T}, Nothing}=nothing,
-            variable_names::Union{Array{String, 1}, Nothing}=nothing,
-            y_variable_name::Union{String,Nothing}=nothing,
-            extra::NamedTuple=NamedTuple(),
-            X_units::Union{AbstractVector, Nothing}=nothing,
-            y_units=nothing,
-    ) where {T<:DATA_TYPE}
-
-Construct a dataset to pass between internal functions.
-"""
 function Dataset(
     X::AbstractMatrix{T},
     y::Union{AbstractVector{T},Nothing}=nothing;

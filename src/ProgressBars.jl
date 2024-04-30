@@ -2,7 +2,6 @@ module ProgressBarsModule
 
 using ProgressBars: ProgressBar, set_multiline_postfix
 
-# Simple wrapper for a progress bar which stores its own state
 mutable struct WrappedProgressBar
     bar::ProgressBar
     state::Union{Int,Nothing}
@@ -18,7 +17,6 @@ mutable struct WrappedProgressBar
     end
 end
 
-"""Iterate a progress bar without needing to store cycle/state externally."""
 function manually_iterate!(progress_bar::WrappedProgressBar)
     cur_cycle = progress_bar.cycle
     cur_state = progress_bar.state

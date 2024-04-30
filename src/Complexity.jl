@@ -9,13 +9,6 @@ function past_complexity_limit(
     return compute_complexity(tree, options) > limit
 end
 
-"""
-Compute the complexity of a tree.
-
-By default, this is the number of nodes in a tree.
-However, it could use the custom settings in options.complexity_mapping
-if these are defined.
-"""
 function compute_complexity(
     tree::AbstractExpressionNode, options::Options{CT}; break_sharing=Val(false)
 )::Int where {CT}
